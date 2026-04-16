@@ -1,0 +1,70 @@
+// Custom Color Palette from Color Hunt
+// https://colorhunt.co/palette/91c6bc4b9da9f6f3c2e37434
+
+// Primary Colors from the palette
+$palette-primary:        #91c6bc;    // Teal/Mint
+$palette-secondary:      #4b9da9;    // Teal-blue
+$palette-accent:         #f6f3c2;    // Light cream/beige
+$palette-danger:         #e37434;    // Orange-rust
+
+// Override Bootstrap variables with custom palette
+// Primary
+$primary:                $palette-primary;
+$blue:                   $palette-primary;
+
+// Secondary
+$secondary:              $palette-secondary;
+$teal:                   $palette-secondary;
+
+// Danger/Error
+$red:                    $palette-danger;
+$danger:                 $palette-danger;
+
+// Accent/Warning
+$yellow:                 $palette-accent;
+$warning:                $palette-accent;
+
+// Info (use secondary for info)
+$cyan:                   $palette-secondary;
+$info:                   $palette-secondary;
+
+// Green (keep or adjust as needed)
+$green:                  #4b9da9;
+$success:                $palette-secondary;
+
+// Update link colors
+$link-color:             $palette-primary;
+$link-hover-color:       $palette-secondary;
+
+// Update common component colors
+$button-focus-box-shadow: 0 0 0 0.25rem rgba($palette-primary, 0.25);
+
+// Update form control colors
+$form-control-focus-border-color:        $palette-primary;
+$form-control-focus-box-shadow:          0 0 0 0.25rem rgba($palette-primary, 0.25);
+$form-switch-checked-bg-color:           $palette-primary;
+$form-switch-checked-border-color:       $palette-primary;
+
+// Update card border
+$card-border-color:      rgba($palette-primary, 0.13);
+
+// Update progress bar
+$progress-bg:            lighten($palette-primary, 35%);
+$progress-bar-bg:        $palette-primary;
+
+// Badge colors
+$badge-bg:               $palette-primary;
+
+// Alert colors
+$alert-bg-scale:         -80%;
+$alert-border-scale:     -70%;
+$alert-color-scale:      40%;
+
+// Pagination
+$pagination-active-bg:   $palette-primary;
+$pagination-active-border-color: $palette-primary;
+
+// Custom gradient variables
+$gradient-primary-to-secondary:  linear-gradient(135deg, $palette-primary 0%, $palette-secondary 100%);
+$gradient-secondary-to-primary:  linear-gradient(135deg, $palette-secondary 0%, $palette-primary 100%);
+

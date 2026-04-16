@@ -1,0 +1,87 @@
+# =========================
+# Build outputs (Java)
+# =========================
+target/
+build/
+out/
+bin/
+*.class
+.gradle/
+.mvn/wrapper/maven-wrapper.jar
+
+# =========================
+# Frontend outputs (React/Vite)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/coverage/
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Environment & sensitive files
+# =========================
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Spring config that may contain sensitive values
+application.properties
+application-*.properties
+application.yml
+application-*.yml
+application.yaml
+application-*.yaml
+
+# Keys / certs / credential artifacts
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+*.der
+*secret*
+*secrets*
+*credential*
+*credentials*
+*token*
+
+# Common secret file patterns
+service-account*.json
+firebase-admin*.json
+credentials*.json
+
+# =========================
+# IDE / OS
+# =========================
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+
+# =========================
+# Project-specific generated/docs
+# =========================
+spring-modulith-docs/
+copilot/
+frontend/copilot/
