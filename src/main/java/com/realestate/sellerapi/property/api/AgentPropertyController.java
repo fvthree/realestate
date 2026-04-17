@@ -81,6 +81,16 @@ public class AgentPropertyController {
         }
     }
 
+    @GetMapping("/status-counts")
+    public ResponseEntity<?> getPropertyStatusCounts() {
+        AgentPrincipal principal = (AgentPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(401, "Unauthorized"));
+        }
+        return ResponseEntity.ok(propertyService.getAgentPropertyStatusCounts(principal.agentId()));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProperty(@PathVariable UUID id) {
         AgentPrincipal principal = (AgentPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

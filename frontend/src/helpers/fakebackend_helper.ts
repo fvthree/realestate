@@ -60,6 +60,9 @@ export const postJwtLogin = (data : any) => api.create(url.POST_FAKE_JWT_LOGIN, 
 export const getMe = () => api.get(url.GET_ME);
 export const patchMeProfile = (data: any) => api.update(url.PATCH_ME_PROFILE, data);
 export const getPublicAgent = () => api.get(url.GET_PUBLIC_AGENT);
+export const getPublicProperties = (params?: Record<string, string | number | undefined>) =>
+  api.get(url.GET_PUBLIC_PROPERTIES, params);
+export const getPublicProperty = (id: string) => api.get(`${url.GET_PUBLIC_PROPERTIES}/${id}`);
 
 // postForgetPwd
 export const postJwtForgetPwd = (data : any) => api.create(url.POST_FAKE_JWT_PASSWORD_FORGET, data);
@@ -405,6 +408,7 @@ export const addCandidateGrid = (category : any) => api.create(url.ADD_CANDIDATE
 
 // Properties (Seller Portal)
 export const getProperties = (params?: any) => api.get(url.GET_PROPERTIES, params);
+export const getPropertyStatusCounts = () => api.get(url.GET_PROPERTY_STATUS_COUNTS);
 export const getProperty = (id: string) => api.get(`${url.GET_PROPERTY}/${id}`);
 export const createProperty = (property: any) => api.create(url.CREATE_PROPERTY, property);
 export const updateProperty = (id: string, property: any) => api.update(`${url.UPDATE_PROPERTY}/${id}`, property);

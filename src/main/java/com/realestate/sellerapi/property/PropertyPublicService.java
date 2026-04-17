@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import com.realestate.sellerapi.property.domain.PropertyMedia;
 
 @Service
 public class PropertyPublicService {
@@ -78,7 +80,7 @@ public class PropertyPublicService {
         List<Property> pageContent = published.subList(start, end);
 
         List<PaginatedPropertyResponse.PropertySummaryItem> items = pageContent.stream()
-                .map(this::toSummaryItem)
+                .map(p -> toSummaryItem(p))
                 .collect(Collectors.toList());
 
         PaginatedPropertyResponse.MetaResponse meta = new PaginatedPropertyResponse.MetaResponse(
@@ -154,10 +156,28 @@ public class PropertyPublicService {
                         property.getCityMunicipality(),
                         property.getProvince()
                 ),
-                null,
+                resolveCoverImageUrl(property.getId()),
                 property.getSoldAt(),
                 property.getCreatedAt()
         );
+    }
+
+    /**
+     * Cover image for list cards: explicit cover flag, else first image with a public URL.
+     */
+    private String resolveCoverImageUrl(UUID propertyId) {
+        List<PropertyMedia> media = propertyMediaRepository.findByPropertyIdOrderBySortOrderAsc(propertyId);
+        return media.stream()
+                .filter(m -> Boolean.TRUE.equals(m.getIsCover()) && m.getPublicUrl() != null && !m.getPublicUrl().isBlank())
+                .map(PropertyMedia::getPublicUrl)
+                .findFirst()
+                .or(() -> media.stream()
+                        .map(PropertyMedia::getPublicUrl)
+                        .filter(Objects::nonNull)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .findFirst())
+                .orElse(null);
     }
 }
 

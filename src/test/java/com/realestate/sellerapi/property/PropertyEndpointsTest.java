@@ -281,6 +281,57 @@ class PropertyEndpointsTest {
     }
 
     @Test
+    void statusCountsReflectsAgentProperties() throws Exception {
+        Property draft = Property.builder()
+                .agentId(agentId)
+                .title("Draft Only")
+                .description("Desc")
+                .pricePhp(new BigDecimal("1000000"))
+                .propertyType(PropertyType.valueOf("CONDO"))
+                .bedrooms(2)
+                .bathrooms(1)
+                .floorAreaSqm(new BigDecimal("45"))
+                .region("CALABARZON")
+                .province("Cavite")
+                .cityMunicipality("Imus")
+                .barangay("Anabu")
+                .postalCode("4103")
+                .streetAddress("123 Main St")
+                .status(PropertyStatus.DRAFT)
+                .build();
+
+        Property published = Property.builder()
+                .agentId(agentId)
+                .title("Published Only")
+                .description("Desc")
+                .pricePhp(new BigDecimal("2000000"))
+                .propertyType(PropertyType.valueOf("HOUSE"))
+                .bedrooms(3)
+                .bathrooms(2)
+                .floorAreaSqm(new BigDecimal("150"))
+                .region("CALABARZON")
+                .province("Cavite")
+                .cityMunicipality("Imus")
+                .barangay("Anabu")
+                .postalCode("4103")
+                .streetAddress("456 Oak St")
+                .status(PropertyStatus.PUBLISHED)
+                .publishedAt(java.time.Instant.now())
+                .build();
+
+        propertyRepository.saveAll(java.util.List.of(draft, published));
+
+        mockMvc.perform(get("/api/me/properties/status-counts")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.draft").value(1))
+                .andExpect(jsonPath("$.published").value(1))
+                .andExpect(jsonPath("$.sold").value(0))
+                .andExpect(jsonPath("$.archived").value(0))
+                .andExpect(jsonPath("$.total").value(2));
+    }
+
+    @Test
     void publicPropertyBrowsingRequiresNoAuth() throws Exception {
         Property property = Property.builder()
                 .agentId(agentId)

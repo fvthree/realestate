@@ -18,5 +18,9 @@ public interface PropertyRepository extends JpaRepository<Property, UUID> {
     List<Property> findByAgentIdAndStatus(UUID agentId, PropertyStatus status);
 
     List<Property> findByStatus(PropertyStatus status);
+
+    long countByAgentIdAndStatus(UUID agentId, PropertyStatus status);
+
+    boolean existsByAgentIdAndTitle(UUID agentId, String title);
 }
 

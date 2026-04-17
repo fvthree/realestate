@@ -10,6 +10,8 @@ export const SOCIAL_LOGIN = "/social-login";
 export const GET_ME = "/me";
 export const PATCH_ME_PROFILE = "/me/profile";
 export const GET_PUBLIC_AGENT = "/public/agent";
+/** Published listings only (guest browse). */
+export const GET_PUBLIC_PROPERTIES = "/public/properties";
 
 //PROFILE
 export const POST_EDIT_JWT_PROFILE = "/post-jwt-profile";
@@ -263,6 +265,7 @@ export const ADD_CATEGORY_LIST = "/add/category-list";
 
 // Properties (Seller Portal)
 export const GET_PROPERTIES = "/me/properties";
+export const GET_PROPERTY_STATUS_COUNTS = "/me/properties/status-counts";
 export const GET_PROPERTY = "/me/properties";
 export const CREATE_PROPERTY = "/me/properties";
 export const UPDATE_PROPERTY = "/me/properties";

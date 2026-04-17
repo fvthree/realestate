@@ -5,6 +5,7 @@ import com.realestate.sellerapi.property.api.CreatePropertyRequest;
 import com.realestate.sellerapi.property.api.MarkSoldResponse;
 import com.realestate.sellerapi.property.api.PaginatedPropertyResponse;
 import com.realestate.sellerapi.property.api.PropertyResponse;
+import com.realestate.sellerapi.property.api.PropertyStatusCountsResponse;
 import com.realestate.sellerapi.property.api.PublishPropertyResponse;
 import com.realestate.sellerapi.property.api.UpdatePropertyRequest;
 import com.realestate.sellerapi.property.api.events.PropertyPublishedEvent;
@@ -158,6 +159,15 @@ public class PropertyService {
         );
 
         return new PaginatedPropertyResponse(items, meta);
+    }
+
+    public PropertyStatusCountsResponse getAgentPropertyStatusCounts(UUID agentId) {
+        long draft = propertyRepository.countByAgentIdAndStatus(agentId, PropertyStatus.DRAFT);
+        long published = propertyRepository.countByAgentIdAndStatus(agentId, PropertyStatus.PUBLISHED);
+        long sold = propertyRepository.countByAgentIdAndStatus(agentId, PropertyStatus.SOLD);
+        long archived = propertyRepository.countByAgentIdAndStatus(agentId, PropertyStatus.ARCHIVED);
+        long total = draft + published + sold + archived;
+        return new PropertyStatusCountsResponse(draft, published, sold, archived, total);
     }
 
     private Property findAgentProperty(UUID agentId, UUID propertyId) {

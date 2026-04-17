@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate } from "react-router-dom";
 
 //Dashboard
+import SellerDashboard from "../pages/SellerDashboard";
 import DashboardAnalytics from "../pages/DashboardAnalytics";
 import DashboardCrm from "../pages/DashboardCrm";
 import DashboardEcommerce from "../pages/DashboardEcommerce";
@@ -248,7 +249,8 @@ import BlogListView from "pages/Pages/Blogs/ListView";
 import BlogGridView from "pages/Pages/Blogs/GridView";
 import PageBlogOverview from "pages/Pages/Blogs/Overview";
 import PropertiesList from "../pages/Properties/PropertiesList";
-
+import PublicHome from "../pages/PublicHome";
+import PublicPropertyDetail from "../pages/PublicPropertyDetail";
 
 
 const authProtectedRoutes = [
@@ -256,7 +258,7 @@ const authProtectedRoutes = [
   // dashboard
   { path: "/dashboard-analytics", component: <DashboardAnalytics /> },
   { path: "/dashboard-crm", component: <DashboardCrm /> },
-  { path: "/dashboard", component: <DashboardEcommerce /> },
+  { path: "/dashboard", component: <SellerDashboard /> },
   { path: "/index", component: <DashboardEcommerce /> },
   { path: "/dashboard-crypto", component: <DashboardCrypto /> },
   { path: "/dashboard-projects", component: <DashboardProject /> },
@@ -466,16 +468,13 @@ const authProtectedRoutes = [
   { path: "/profile", component: <UserProfile /> },
 
   // this route should be at the end of all other routes
-  // eslint-disable-next-line react/display-name
-  {
-    path: "/",
-    exact: true,
-    component: <Navigate to="/dashboard" />,
-  },
   { path: "*", component: <Navigate to="/dashboard" /> },
 ];
 
 const publicRoutes = [
+  { path: "/", component: <PublicHome /> },
+  { path: "/listing/:id", component: <PublicPropertyDetail /> },
+
   // Authentication Page
   { path: "/logout", component: <Logout /> },
   { path: "/login", component: <Login /> },

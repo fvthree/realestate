@@ -13,7 +13,7 @@ import java.util.UUID;
  * Repository for PropertyMedia entity.
  * Package-private - only accessible within the property module.
  */
-interface PropertyMediaRepository extends JpaRepository<PropertyMedia, UUID> {
+public interface PropertyMediaRepository extends JpaRepository<PropertyMedia, UUID> {
 
     List<PropertyMedia> findByPropertyOrderBySortOrderAsc(Property property);
 
