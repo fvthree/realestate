@@ -11,7 +11,9 @@ public record AgentInboxInquiryResponse(
         @JsonProperty("buyer_name") String buyerName,
         @JsonProperty("buyer_email") String buyerEmail,
         @JsonProperty("buyer_phone") String buyerPhone,
-        @JsonProperty("created_at") Instant createdAt
+        @JsonProperty("created_at") Instant createdAt,
+        @JsonProperty("property_title") String propertyTitle,
+        @JsonProperty("cover_image_url") String coverImageUrl
 ) {
 }
 

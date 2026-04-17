@@ -62,7 +62,7 @@ const PropertiesList = () => {
                 <Button
                   color="success"
                   onClick={() => navigate('/properties/new')}
-                  style={{ backgroundColor: '#91C6BC', borderColor: '#91C6BC' }}
+                  style={{ backgroundColor: '#A2CB8B', borderColor: '#A2CB8B' }}
                 >
                   <i className="ri-add-line me-1"></i>
                   Create New Property
@@ -124,7 +124,7 @@ const PropertiesList = () => {
 
                       <div className="p-3">
                         <div className="d-flex justify-content-between align-items-start mb-2">
-                          <h5 className="mb-0" style={{ color: '#4B9DA9' }}>
+                          <h5 className="mb-0" style={{ color: '#5B7E3C' }}>
                             {property?.title || "Untitled Property"}
                           </h5>
                           <Badge color={getStatusColor(property?.status)} pill>
@@ -132,7 +132,7 @@ const PropertiesList = () => {
                           </Badge>
                         </div>
 
-                        <h4 className="mb-2" style={{ color: '#E37434' }}>
+                        <h4 className="mb-2" style={{ color: '#C44545' }}>
                           ₱{Number(property?.price_php || 0).toLocaleString()}
                         </h4>
 
@@ -164,7 +164,7 @@ const PropertiesList = () => {
                             size="sm"
                             className="flex-grow-1"
                             onClick={() => navigate(`/properties/${property?.id}/edit`)}
-                            style={{ backgroundColor: '#4B9DA9', borderColor: '#4B9DA9' }}
+                            style={{ backgroundColor: '#5B7E3C', borderColor: '#5B7E3C' }}
                           >
                             <i className="ri-edit-line me-1"></i>
                             Edit
@@ -195,7 +195,7 @@ const PropertiesList = () => {
                     <Button
                       color="success"
                       onClick={() => navigate('/properties/new')}
-                      style={{ backgroundColor: '#91C6BC', borderColor: '#91C6BC' }}
+                      style={{ backgroundColor: '#A2CB8B', borderColor: '#A2CB8B' }}
                     >
                       <i className="ri-add-line me-1"></i>
                       Create Property

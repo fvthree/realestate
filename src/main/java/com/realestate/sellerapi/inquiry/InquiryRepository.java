@@ -10,9 +10,8 @@ import java.util.UUID;
 
 /**
  * Repository for Inquiry entity.
- * Package-private - only accessible within the inquiry module.
  */
-interface InquiryRepository extends JpaRepository<Inquiry, UUID> {
+public interface InquiryRepository extends JpaRepository<Inquiry, UUID> {
 
     List<Inquiry> findByAgentId(UUID agentId);
 
@@ -21,5 +20,7 @@ interface InquiryRepository extends JpaRepository<Inquiry, UUID> {
     List<Inquiry> findByPropertyId(UUID propertyId);
 
     Optional<Inquiry> findByAccessTokenHash(String accessTokenHash);
+
+    long countByAgentId(UUID agentId);
 }
 

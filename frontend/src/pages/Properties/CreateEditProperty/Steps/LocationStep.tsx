@@ -69,7 +69,7 @@ const LocationStep: React.FC<LocationStepProps> = ({ validation }) => {
 
   return (
     <div>
-      <h5 className="mb-3" style={{ color: '#4B9DA9' }}>Property Location</h5>
+      <h5 className="mb-3" style={{ color: '#5B7E3C' }}>Property Location</h5>
       <p className="text-muted">Specify where the property is located</p>
 
       <Row>

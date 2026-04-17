@@ -1,5 +1,7 @@
 .public-home {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--vz-body-bg, #fff);
 
   &__brand {
@@ -30,5 +32,13 @@
 
   &__card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+  }
+
+  &__footer {
+    background: var(--vz-secondary-bg, #f8f9fa);
+  }
+
+  &__footer-links a:hover {
+    color: #5b7e3c !important;
   }
 }

@@ -2,6 +2,11 @@ package com.realestate.sellerapi.config;
 
 import com.realestate.sellerapi.agent.AgentRepository;
 import com.realestate.sellerapi.agent.domain.Agent;
+import com.realestate.sellerapi.inquiry.InquiryRepository;
+import com.realestate.sellerapi.inquiry.domain.ConversationMessage;
+import com.realestate.sellerapi.inquiry.domain.Inquiry;
+import com.realestate.sellerapi.inquiry.domain.InquiryStatus;
+import com.realestate.sellerapi.inquiry.domain.SenderType;
 import com.realestate.sellerapi.property.PropertyMediaRepository;
 import com.realestate.sellerapi.property.PropertyRepository;
 import com.realestate.sellerapi.property.domain.MediaType;
@@ -18,7 +23,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -36,6 +45,7 @@ public class DataSeeder {
     @Bean
     CommandLineRunner seedDatabase(AgentRepository agentRepository,
                                    PropertyRepository propertyRepository,
+                                   InquiryRepository inquiryRepository,
                                    PropertyMediaRepository propertyMediaRepository,
                                    PasswordEncoder passwordEncoder) {
         return args -> {
@@ -46,6 +56,7 @@ public class DataSeeder {
 
             ensureDraftSample(agent.getId(), propertyRepository);
             seedPublishedShowcase(agent.getId(), propertyRepository, propertyMediaRepository);
+            seedInquiryConversations(agent.getId(), propertyRepository, inquiryRepository);
 
             log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
             log.info("🎉 Seed pass complete. Login: {} / password123", DEFAULT_AGENT_EMAIL);
@@ -276,6 +287,104 @@ public class DataSeeder {
                 .isCover(true)
                 .build();
         propertyMediaRepository.save(media);
+    }
+
+    private void seedInquiryConversations(UUID agentId,
+                                          PropertyRepository propertyRepository,
+                                          InquiryRepository inquiryRepository) {
+        final int targetCount = 12;
+        long current = inquiryRepository.countByAgentId(agentId);
+        if (current >= targetCount) {
+            log.info("Inquiry seed already sufficient ({} existing, target {}).", current, targetCount);
+            return;
+        }
+
+        List<Property> published = propertyRepository.findByAgentIdAndStatus(agentId, PropertyStatus.PUBLISHED);
+        if (published.isEmpty()) {
+            log.warn("No published properties available for inquiry seeding.");
+            return;
+        }
+
+        int toCreate = (int) (targetCount - current);
+        int created = 0;
+        String[] firstMessages = new String[]{
+                "Hi, is this still available this month?",
+                "Can we schedule a viewing this weekend?",
+                "Is the price negotiable for cash buyers?",
+                "Are there HOA dues and monthly fees?",
+                "Can you share nearby school options?",
+                "Is flood risk low in this area?",
+                "How many parking slots are included?",
+                "Do you accept pag-ibig financing?",
+                "Can I get a sample computation?",
+                "Is this move-in ready or pre-selling?",
+                "Can we do a virtual tour first?",
+                "What documents are needed to reserve?"
+        };
+
+        InquiryStatus[] statuses = new InquiryStatus[]{
+                InquiryStatus.NEW, InquiryStatus.NEW, InquiryStatus.CONTACTED,
+                InquiryStatus.QUALIFIED, InquiryStatus.CLOSED, InquiryStatus.CONTACTED
+        };
+
+        for (int i = 0; i < toCreate; i++) {
+            int idx = (int) current + i;
+            Property property = published.get(idx % published.size());
+            String buyerName = "Buyer " + (idx + 1);
+            String buyerEmail = "buyer" + (idx + 1) + "@example.test";
+            String buyerPhone = "+63917" + String.format("%07d", 1000000 + idx);
+            String initial = firstMessages[idx % firstMessages.length];
+            InquiryStatus status = statuses[idx % statuses.length];
+
+            Inquiry inquiry = Inquiry.builder()
+                    .propertyId(property.getId())
+                    .agentId(agentId)
+                    .buyerName(buyerName)
+                    .buyerEmail(buyerEmail)
+                    .buyerPhone(buyerPhone)
+                    .initialMessage(initial)
+                    .accessTokenHash(sha256("seed-token-" + agentId + "-" + idx + "-" + UUID.randomUUID()))
+                    .status(status)
+                    .lastContactedAt(status == InquiryStatus.NEW ? null : Instant.now())
+                    .build();
+
+            inquiry.addMessage(ConversationMessage.builder()
+                    .senderType(SenderType.BUYER)
+                    .body(initial)
+                    .build());
+
+            if (status != InquiryStatus.NEW) {
+                inquiry.addMessage(ConversationMessage.builder()
+                        .senderType(SenderType.AGENT)
+                        .body("Thanks for your inquiry. Yes, it's available. Let me share viewing options.")
+                        .build());
+            }
+            if (status == InquiryStatus.QUALIFIED || status == InquiryStatus.CLOSED) {
+                inquiry.addMessage(ConversationMessage.builder()
+                        .senderType(SenderType.BUYER)
+                        .body("Great, please send me the requirements and next steps.")
+                        .build());
+            }
+
+            inquiryRepository.save(inquiry);
+            created++;
+        }
+
+        log.info("Added {} inquiry conversations (target minimum {}).", created, targetCount);
+    }
+
+    private String sha256(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder b = new StringBuilder(hash.length * 2);
+            for (byte x : hash) {
+                b.append(String.format("%02x", x));
+            }
+            return b.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 
     private record PublishedSeed(

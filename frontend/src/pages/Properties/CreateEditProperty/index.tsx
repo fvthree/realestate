@@ -390,7 +390,7 @@ const CreateEditProperty = () => {
                           color="primary"
                           onClick={() => toggleTab(2, 33)}
                           disabled={!isStepValid(1)}
-                          style={{ backgroundColor: '#4B9DA9', borderColor: '#4B9DA9' }}
+                          style={{ backgroundColor: '#5B7E3C', borderColor: '#5B7E3C' }}
                         >
                           Next <i className="ri-arrow-right-line ms-1"></i>
                         </Button>
@@ -410,7 +410,7 @@ const CreateEditProperty = () => {
                           color="primary"
                           onClick={() => toggleTab(3, 66)}
                           disabled={!isStepValid(2)}
-                          style={{ backgroundColor: '#4B9DA9', borderColor: '#4B9DA9' }}
+                          style={{ backgroundColor: '#5B7E3C', borderColor: '#5B7E3C' }}
                         >
                           Next <i className="ri-arrow-right-line ms-1"></i>
                         </Button>
@@ -434,7 +434,7 @@ const CreateEditProperty = () => {
                           color="primary"
                           onClick={() => toggleTab(4, 100)}
                           disabled={!isStepValid(3)}
-                          style={{ backgroundColor: '#4B9DA9', borderColor: '#4B9DA9' }}
+                          style={{ backgroundColor: '#5B7E3C', borderColor: '#5B7E3C' }}
                         >
                           Next <i className="ri-arrow-right-line ms-1"></i>
                         </Button>
@@ -458,7 +458,7 @@ const CreateEditProperty = () => {
                           color="success"
                           onClick={() => validation.handleSubmit()}
                           disabled={!canPublish() || loading}
-                          style={{ backgroundColor: '#91C6BC', borderColor: '#91C6BC' }}
+                          style={{ backgroundColor: '#A2CB8B', borderColor: '#A2CB8B' }}
                         >
                           {loading ? "Publishing..." : (isEditMode ? "Update Property" : "Publish Property")}
                         </Button>

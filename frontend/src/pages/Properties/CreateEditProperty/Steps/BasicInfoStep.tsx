@@ -9,7 +9,7 @@ interface BasicInfoStepProps {
 const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ validation }) => {
   return (
     <div>
-      <h5 className="mb-3" style={{ color: '#4B9DA9' }}>Property Basic Information</h5>
+      <h5 className="mb-3" style={{ color: '#5B7E3C' }}>Property Basic Information</h5>
       <p className="text-muted">Enter the basic details about your property</p>
 
       <Row>

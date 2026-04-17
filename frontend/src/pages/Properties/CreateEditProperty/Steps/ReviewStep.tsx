@@ -46,7 +46,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData, uploadedMedia, canPub
 
   return (
     <div>
-      <h5 className="mb-3" style={{ color: '#4B9DA9' }}>Review & Publish</h5>
+      <h5 className="mb-3" style={{ color: '#5B7E3C' }}>Review & Publish</h5>
       <p className="text-muted">Review your property details before publishing</p>
 
       <Row>
@@ -55,7 +55,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData, uploadedMedia, canPub
           <Card className="border mb-4">
             <CardBody>
               <h6 className="mb-3">
-                <i className="ri-checkbox-circle-line me-2" style={{ color: '#4B9DA9' }}></i>
+                <i className="ri-checkbox-circle-line me-2" style={{ color: '#5B7E3C' }}></i>
                 Required Fields Checklist
               </h6>
 
@@ -110,7 +110,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData, uploadedMedia, canPub
                     <Badge
                       pill
                       style={{
-                        backgroundColor: '#E37434',
+                        backgroundColor: '#C44545',
                         fontSize: '0.875rem',
                         padding: '0.5rem 1rem'
                       }}
@@ -124,10 +124,10 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData, uploadedMedia, canPub
               <div className="p-4">
                 {/* Title and Price */}
                 <div className="mb-3">
-                  <h4 className="mb-2" style={{ color: '#4B9DA9' }}>
+                  <h4 className="mb-2" style={{ color: '#5B7E3C' }}>
                     {formData.title || "Property Title"}
                   </h4>
-                  <h3 className="mb-0" style={{ color: '#E37434' }}>
+                  <h3 className="mb-0" style={{ color: '#C44545' }}>
                     ₱{formData.price_php ? parseFloat(formData.price_php).toLocaleString() : '0'}
                   </h3>
                 </div>
@@ -153,25 +153,25 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData, uploadedMedia, canPub
                 <div className="d-flex flex-wrap gap-3 mb-3">
                   {formData.bedrooms && (
                     <div className="d-flex align-items-center">
-                      <i className="ri-hotel-bed-line me-2" style={{ color: '#4B9DA9' }}></i>
+                      <i className="ri-hotel-bed-line me-2" style={{ color: '#5B7E3C' }}></i>
                       <span>{formData.bedrooms} Bed{parseInt(formData.bedrooms) !== 1 ? 's' : ''}</span>
                     </div>
                   )}
                   {formData.bathrooms && (
                     <div className="d-flex align-items-center">
-                      <i className="ri-drop-line me-2" style={{ color: '#4B9DA9' }}></i>
+                      <i className="ri-drop-line me-2" style={{ color: '#5B7E3C' }}></i>
                       <span>{formData.bathrooms} Bath{parseFloat(formData.bathrooms) !== 1 ? 's' : ''}</span>
                     </div>
                   )}
                   {formData.lot_area_sqm && (
                     <div className="d-flex align-items-center">
-                      <i className="ri-ruler-line me-2" style={{ color: '#4B9DA9' }}></i>
+                      <i className="ri-ruler-line me-2" style={{ color: '#5B7E3C' }}></i>
                       <span>{formData.lot_area_sqm} sqm (Lot)</span>
                     </div>
                   )}
                   {formData.floor_area_sqm && (
                     <div className="d-flex align-items-center">
-                      <i className="ri-home-4-line me-2" style={{ color: '#4B9DA9' }}></i>
+                      <i className="ri-home-4-line me-2" style={{ color: '#5B7E3C' }}></i>
                       <span>{formData.floor_area_sqm} sqm (Floor)</span>
                     </div>
                   )}
@@ -202,7 +202,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ formData, uploadedMedia, canPub
                             width: '80px',
                             height: '80px',
                             objectFit: 'cover',
-                            border: media?.isCover ? '3px solid #E37434' : 'none'
+                            border: media?.isCover ? '3px solid #C44545' : 'none'
                           }}
                         />
                       ))}

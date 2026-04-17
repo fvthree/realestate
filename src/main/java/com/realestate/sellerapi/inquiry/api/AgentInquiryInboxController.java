@@ -50,6 +50,22 @@ public class AgentInquiryInboxController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getInquiry(@PathVariable UUID id) {
+        AgentPrincipal principal = (AgentPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(401, "Unauthorized"));
+        }
+        try {
+            AgentInquiryDetailResponse response = inquiryService.getAgentInquiryDetail(principal.agentId(), id);
+            return ResponseEntity.ok(response);
+        } catch (InquiryNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(404, "Inquiry not found"));
+        }
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateStatus(
             @PathVariable UUID id,

@@ -6,15 +6,21 @@ import com.realestate.sellerapi.inquiry.domain.ConversationMessage;
 import com.realestate.sellerapi.inquiry.domain.Inquiry;
 import com.realestate.sellerapi.inquiry.domain.InquiryStatus;
 import com.realestate.sellerapi.inquiry.domain.SenderType;
+import com.realestate.sellerapi.property.PropertyMediaRepository;
+import com.realestate.sellerapi.property.PropertyRepository;
 import com.realestate.sellerapi.property.api.PropertyAccess;
 import com.realestate.sellerapi.property.api.PropertySummary;
+import com.realestate.sellerapi.property.domain.Property;
+import com.realestate.sellerapi.property.domain.PropertyMedia;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -26,13 +32,19 @@ public class InquiryService {
 
     private final InquiryRepository inquiryRepository;
     private final PropertyAccess propertyAccess;
+    private final PropertyRepository propertyRepository;
+    private final PropertyMediaRepository propertyMediaRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     InquiryService(InquiryRepository inquiryRepository,
                    PropertyAccess propertyAccess,
+                   PropertyRepository propertyRepository,
+                   PropertyMediaRepository propertyMediaRepository,
                    ApplicationEventPublisher eventPublisher) {
         this.inquiryRepository = inquiryRepository;
         this.propertyAccess = propertyAccess;
+        this.propertyRepository = propertyRepository;
+        this.propertyMediaRepository = propertyMediaRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -175,6 +187,64 @@ public class InquiryService {
         return new PaginatedInquiryResponse(items, meta);
     }
 
+    @Transactional(readOnly = true)
+    public AgentInquiryDetailResponse getAgentInquiryDetail(UUID agentId, UUID inquiryId) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(InquiryNotFoundException::new);
+
+        if (!inquiry.getAgentId().equals(agentId)) {
+            throw new InquiryNotFoundException();
+        }
+
+        String propertyTitle = null;
+        String coverImageUrl = null;
+        java.math.BigDecimal pricePHP = null;
+        String propertyType = null;
+        Integer bedrooms = null;
+        Integer bathrooms = null;
+        String cityMunicipality = null;
+        String province = null;
+        Optional<Property> propertyOpt = propertyRepository.findById(inquiry.getPropertyId());
+        if (propertyOpt.isPresent()) {
+            Property p = propertyOpt.get();
+            propertyTitle = p.getTitle();
+            coverImageUrl = resolveCoverImageUrl(p.getId());
+            pricePHP = p.getPricePhp();
+            propertyType = p.getPropertyType() != null ? p.getPropertyType().name() : null;
+            bedrooms = p.getBedrooms();
+            bathrooms = p.getBathrooms();
+            cityMunicipality = p.getCityMunicipality();
+            province = p.getProvince();
+        }
+
+        List<AgentInquiryDetailResponse.MessageInfo> messages = inquiry.getMessages().stream()
+                .map(m -> new AgentInquiryDetailResponse.MessageInfo(
+                        m.getId(),
+                        m.getSenderType().name(),
+                        m.getBody(),
+                        m.getCreatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        return new AgentInquiryDetailResponse(
+                inquiry.getId(),
+                inquiry.getPropertyId(),
+                inquiry.getStatus().name(),
+                propertyTitle,
+                coverImageUrl,
+                pricePHP,
+                propertyType,
+                bedrooms,
+                bathrooms,
+                cityMunicipality,
+                province,
+                inquiry.getBuyerName(),
+                inquiry.getBuyerEmail(),
+                inquiry.getBuyerPhone(),
+                messages
+        );
+    }
+
     public AgentInboxInquiryResponse updateInquiryStatus(UUID agentId, UUID inquiryId, UpdateInquiryStatusRequest request) {
         Inquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(InquiryNotFoundException::new);
@@ -240,6 +310,14 @@ public class InquiryService {
     }
 
     private AgentInboxInquiryResponse toAgentInboxResponse(Inquiry inquiry) {
+        String propertyTitle = null;
+        String coverImageUrl = null;
+        Optional<Property> propertyOpt = propertyRepository.findById(inquiry.getPropertyId());
+        if (propertyOpt.isPresent()) {
+            Property p = propertyOpt.get();
+            propertyTitle = p.getTitle();
+            coverImageUrl = resolveCoverImageUrl(p.getId());
+        }
         return new AgentInboxInquiryResponse(
                 inquiry.getId(),
                 inquiry.getPropertyId(),
@@ -247,7 +325,24 @@ public class InquiryService {
                 inquiry.getBuyerName(),
                 inquiry.getBuyerEmail(),
                 inquiry.getBuyerPhone(),
-                inquiry.getCreatedAt()
+                inquiry.getCreatedAt(),
+                propertyTitle,
+                coverImageUrl
         );
+    }
+
+    private String resolveCoverImageUrl(UUID propertyId) {
+        List<PropertyMedia> media = propertyMediaRepository.findByPropertyIdOrderBySortOrderAsc(propertyId);
+        return media.stream()
+                .filter(m -> Boolean.TRUE.equals(m.getIsCover()) && m.getPublicUrl() != null && !m.getPublicUrl().isBlank())
+                .map(PropertyMedia::getPublicUrl)
+                .findFirst()
+                .or(() -> media.stream()
+                        .map(PropertyMedia::getPublicUrl)
+                        .filter(Objects::nonNull)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .findFirst())
+                .orElse(null);
     }
 }

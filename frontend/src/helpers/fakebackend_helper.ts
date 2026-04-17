@@ -431,6 +431,7 @@ export const updateBuyerInquiry = (inquiryId: string, token: string, payload: an
 export const addBuyerInquiryMessage = (inquiryId: string, token: string, payload: any) =>
   api.create(`${url.ADD_BUYER_MESSAGE}/${inquiryId}/messages?token=${encodeURIComponent(token)}`, payload);
 export const getAgentInquiries = (params?: any) => api.get(url.GET_AGENT_INQUIRIES, params);
+export const getAgentInquiry = (inquiryId: string) => api.get(`${url.GET_AGENT_INQUIRIES}/${inquiryId}`);
 export const updateAgentInquiry = (inquiryId: string, payload: any) =>
   api.update(`${url.UPDATE_AGENT_INQUIRY}/${inquiryId}`, payload);
 export const addAgentInquiryMessage = (inquiryId: string, payload: any) =>

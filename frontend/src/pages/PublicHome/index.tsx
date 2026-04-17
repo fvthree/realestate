@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Button,
@@ -6,6 +6,8 @@ import {
   CardBody,
   Col,
   Container,
+  Input,
+  Label,
   Row,
   Spinner,
 } from "reactstrap";
@@ -31,6 +33,24 @@ type ListPayload = {
   meta: { page: number; per_page: number; total: number };
 };
 
+type ListingFilters = {
+  city: string;
+  province: string;
+  propertyType: string;
+  bedrooms: string;
+  minPrice: string;
+  maxPrice: string;
+};
+
+const emptyFilters: ListingFilters = {
+  city: "",
+  province: "",
+  propertyType: "",
+  bedrooms: "",
+  minPrice: "",
+  maxPrice: "",
+};
+
 const formatPhp = (n: number | undefined) => {
   if (n == null || Number.isNaN(Number(n))) return "—";
   try {
@@ -48,66 +68,69 @@ const PublicHome = () => {
   const [items, setItems] = useState<PublicPropertyItem[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [perPage] = useState(12);
+  const [perPage] = useState(6);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ListingFilters>(emptyFilters);
+  const [appliedFilters, setAppliedFilters] = useState<ListingFilters>(emptyFilters);
+
+  const hasActiveFilters = useMemo(
+    () => Object.values(appliedFilters).some((v) => String(v).trim().length > 0),
+    [appliedFilters]
+  );
 
   const load = useCallback(
-    async (nextPage: number, append: boolean) => {
+    async (nextPage: number) => {
       try {
-        if (append) setLoadingMore(true);
-        else setLoading(true);
-        const raw = await getPublicProperties({
+        setLoading(true);
+        const params: Record<string, string | number> = {
           page: nextPage,
           per_page: perPage,
+        };
+        if (appliedFilters.city) params.city = appliedFilters.city;
+        if (appliedFilters.province) params.province = appliedFilters.province;
+        if (appliedFilters.propertyType) params.property_type = appliedFilters.propertyType;
+        if (appliedFilters.bedrooms) params.bedrooms = Number(appliedFilters.bedrooms);
+        if (appliedFilters.minPrice) params.minPrice = Number(appliedFilters.minPrice);
+        if (appliedFilters.maxPrice) params.maxPrice = Number(appliedFilters.maxPrice);
+        const raw = await getPublicProperties({
+          ...params,
         });
         const payload = raw as unknown as ListPayload;
         const data = Array.isArray(payload?.data) ? payload.data : [];
         const meta = payload?.meta;
         setTotal(typeof meta?.total === "number" ? meta.total : data.length);
-        setItems((prev) => (append ? [...prev, ...data] : data));
+        setItems(data);
         setError(null);
       } catch (e: any) {
         setError(e?.message || "Could not load listings.");
-        if (!append) setItems([]);
+        setItems([]);
       } finally {
         setLoading(false);
-        setLoadingMore(false);
       }
     },
-    [perPage]
+    [appliedFilters, perPage]
   );
 
   useEffect(() => {
-    document.title = "Browse properties | Philippines";
-    load(1, false);
-  }, [load]);
+    document.title = "MyTahanan";
+  }, []);
 
-  const hasMore = items.length < total;
+  useEffect(() => {
+    load(page);
+  }, [load, page]);
+  
+  const totalPages = Math.max(1, Math.ceil(total / perPage));
+  const pageNumbers = useMemo(() => {
+    const numbers: number[] = [];
+    for (let i = 1; i <= totalPages; i++) {
+      numbers.push(i);
+    }
+    return numbers;
+  }, [totalPages]);
 
   return (
     <div className="public-home">
-      <header className="public-home__header border-bottom">
-        <Container fluid className="py-3">
-          <Row className="align-items-center">
-            <Col>
-              <Link to="/" className="public-home__brand text-decoration-none">
-                <span className="fw-semibold fs-18 text-body">Seller Portal</span>
-                <span className="text-muted ms-2 d-none d-sm-inline">
-                  Philippines listings
-                </span>
-              </Link>
-            </Col>
-            <Col xs="auto" className="d-flex gap-2">
-              <Button tag={Link} to="/login" color="primary" outline size="sm">
-                Agent login
-              </Button>
-            </Col>
-          </Row>
-        </Container>
-      </header>
-
       <section className="public-home__hero bg-light py-5 mb-4">
         <Container>
           <h1 className="h3 mb-2">Find your next home</h1>
@@ -118,6 +141,105 @@ const PublicHome = () => {
       </section>
 
       <Container className="pb-5">
+        <Card className="border shadow-sm mb-4">
+          <CardBody className="py-3">
+            <Row className="g-3 align-items-end">
+              <Col md={6} lg={3}>
+                <Label className="form-label mb-1">City</Label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Imus"
+                  value={filters.city}
+                  onChange={(e) => setFilters((f) => ({ ...f, city: e.target.value }))}
+                />
+              </Col>
+              <Col md={6} lg={3}>
+                <Label className="form-label mb-1">Province</Label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Cavite"
+                  value={filters.province}
+                  onChange={(e) => setFilters((f) => ({ ...f, province: e.target.value }))}
+                />
+              </Col>
+              <Col md={6} lg={2}>
+                <Label className="form-label mb-1">Property type</Label>
+                <Input
+                  type="select"
+                  value={filters.propertyType}
+                  onChange={(e) => setFilters((f) => ({ ...f, propertyType: e.target.value }))}
+                >
+                  <option value="">Any</option>
+                  <option value="HOUSE">House</option>
+                  <option value="CONDO">Condo</option>
+                  <option value="LOT">Lot</option>
+                  <option value="TOWNHOUSE">Townhouse</option>
+                  <option value="COMMERCIAL">Commercial</option>
+                </Input>
+              </Col>
+              <Col md={6} lg={2}>
+                <Label className="form-label mb-1">Bedrooms</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Any"
+                  value={filters.bedrooms}
+                  onChange={(e) => setFilters((f) => ({ ...f, bedrooms: e.target.value }))}
+                />
+              </Col>
+              <Col md={6} lg={1}>
+                <Label className="form-label mb-1">Min</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  value={filters.minPrice}
+                  onChange={(e) => setFilters((f) => ({ ...f, minPrice: e.target.value }))}
+                />
+              </Col>
+              <Col md={6} lg={1}>
+                <Label className="form-label mb-1">Max</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Any"
+                  value={filters.maxPrice}
+                  onChange={(e) => setFilters((f) => ({ ...f, maxPrice: e.target.value }))}
+                />
+              </Col>
+            </Row>
+
+            <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
+              <Button
+                color="primary"
+                size="sm"
+                style={{ backgroundColor: "#A2CB8B", borderColor: "#A2CB8B" }}
+                onClick={() => {
+                  setPage(1);
+                  setAppliedFilters(filters);
+                }}
+              >
+                <i className="ri-filter-3-line me-1" />
+                Apply filters
+              </Button>
+              <Button
+                color="light"
+                size="sm"
+                onClick={() => {
+                  setPage(1);
+                  setFilters(emptyFilters);
+                  setAppliedFilters(emptyFilters);
+                }}
+              >
+                Clear
+              </Button>
+              <span className="text-muted small ms-auto">
+                {hasActiveFilters ? "Filtered results" : "Showing all published listings"}
+              </span>
+            </div>
+          </CardBody>
+        </Card>
+
         {error && (
           <div className="alert alert-danger" role="alert">
             {error}
@@ -130,7 +252,9 @@ const PublicHome = () => {
           </div>
         ) : items.length === 0 ? (
           <p className="text-muted text-center py-5">
-            No published listings yet. Check back soon.
+            {hasActiveFilters
+              ? "No listings match your filters. Try broadening your search."
+              : "No published listings yet. Check back soon."}
           </p>
         ) : (
           <>
@@ -165,7 +289,7 @@ const PublicHome = () => {
                           .filter(Boolean)
                           .join(", ") || "Location on request"}
                       </p>
-                      <div className="mt-auto">
+                      <div className="mt-auto d-grid gap-2">
                         <Button
                           tag={Link}
                           to={`/listing/${p.id}`}
@@ -173,11 +297,26 @@ const PublicHome = () => {
                           size="sm"
                           className="w-100"
                           style={{
-                            backgroundColor: "#91C6BC",
-                            borderColor: "#91C6BC",
+                            backgroundColor: "#A2CB8B",
+                            borderColor: "#A2CB8B",
                           }}
                         >
                           View details
+                        </Button>
+                        <Button
+                          tag={Link}
+                          to={`/listing/${p.id}?contact=1`}
+                          color="primary"
+                          outline
+                          size="sm"
+                          className="w-100"
+                          style={{
+                            borderColor: "#A2CB8B",
+                            color: "#5B7E3C",
+                          }}
+                        >
+                          <i className="ri-mail-send-line me-1" />
+                          Message agent
                         </Button>
                       </div>
                     </CardBody>
@@ -185,32 +324,70 @@ const PublicHome = () => {
                 </Col>
               ))}
             </Row>
-
-            {hasMore && (
-              <div className="text-center mt-4">
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-center align-items-center gap-2 mt-4 flex-wrap">
                 <Button
-                  color="secondary"
-                  outline
-                  disabled={loadingMore}
-                  onClick={() => {
-                    const next = page + 1;
-                    setPage(next);
-                    load(next, true);
-                  }}
+                  color="light"
+                  size="sm"
+                  disabled={page <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
-                  {loadingMore ? (
-                    <>
-                      <Spinner size="sm" className="me-2" /> Loading…
-                    </>
-                  ) : (
-                    "Load more"
-                  )}
+                  Previous
+                </Button>
+                {pageNumbers.map((n) => (
+                  <Button
+                    key={n}
+                    size="sm"
+                    color={n === page ? "primary" : "light"}
+                    style={
+                      n === page
+                        ? { backgroundColor: "#A2CB8B", borderColor: "#A2CB8B" }
+                        : undefined
+                    }
+                    disabled={loading}
+                    onClick={() => setPage(n)}
+                  >
+                    {n}
+                  </Button>
+                ))}
+                <Button
+                  color="light"
+                  size="sm"
+                  disabled={page >= totalPages || loading}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                >
+                  Next
                 </Button>
               </div>
             )}
           </>
         )}
       </Container>
+
+      <footer className="public-home__footer border-top mt-auto">
+        <Container fluid className="py-3">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <div className="d-flex align-items-center gap-2">
+              <span className="fw-semibold text-body">MyTahanan</span>
+              <span className="text-muted small d-none d-sm-inline">Philippines listings</span>
+            </div>
+            <div className="d-flex align-items-center gap-3 public-home__footer-links">
+              <Link to="/pages-maintenance" className="text-muted small text-decoration-none">
+                Privacy
+              </Link>
+              <Link to="/pages-maintenance" className="text-muted small text-decoration-none">
+                Terms
+              </Link>
+              <Link to="/pages-maintenance" className="text-muted small text-decoration-none">
+                Contact
+              </Link>
+            </div>
+            <p className="text-muted small mb-0">
+              Copyright © {new Date().getFullYear()} MyTahanan
+            </p>
+          </div>
+        </Container>
+      </footer>
     </div>
   );
 };

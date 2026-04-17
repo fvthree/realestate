@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   Button,
   Card,
@@ -11,6 +11,8 @@ import {
 } from "reactstrap";
 import { getPublicProperty } from "../../helpers/fakebackend_helper";
 import propertyPlaceholder from "../../assets/images/property-placeholder.svg";
+
+import ContactAgentModal from "../../Components/Public/ContactAgentModal";
 
 import "./PublicPropertyDetail.scss";
 
@@ -61,9 +63,11 @@ const formatPhp = (n: number | undefined) => {
 
 const PublicPropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [detail, setDetail] = useState<DetailPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [contactOpen, setContactOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -92,6 +96,14 @@ const PublicPropertyDetail = () => {
     };
   }, [id]);
 
+  useEffect(() => {
+    if (searchParams.get("contact") !== "1") return;
+    setContactOpen(true);
+    const next = new URLSearchParams(searchParams);
+    next.delete("contact");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   const sortedMedia = [...(detail?.media || [])].sort(
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
   );
@@ -109,11 +121,6 @@ const PublicPropertyDetail = () => {
               <Link to="/" className="text-decoration-none text-body">
                 ← Back to listings
               </Link>
-            </Col>
-            <Col xs="auto">
-              <Button tag={Link} to="/login" color="primary" outline size="sm">
-                Agent login
-              </Button>
             </Col>
           </Row>
         </Container>
@@ -185,6 +192,21 @@ const PublicPropertyDetail = () => {
                 {detail.bedrooms != null ? ` · ${detail.bedrooms} bed` : ""}
                 {detail.bathrooms != null ? ` · ${detail.bathrooms} bath` : ""}
               </p>
+              <div className="d-grid gap-2 mb-4">
+                <Button
+                  type="button"
+                  color="primary"
+                  size="lg"
+                  onClick={() => setContactOpen(true)}
+                  style={{
+                    backgroundColor: "#A2CB8B",
+                    borderColor: "#A2CB8B",
+                  }}
+                >
+                  <i className="ri-mail-send-line me-2" />
+                  Message the agent
+                </Button>
+              </div>
               {detail.address && (
                 <Card className="mb-3 border">
                   <CardBody className="py-3">
@@ -212,7 +234,7 @@ const PublicPropertyDetail = () => {
                 </div>
               )}
               {detail.agent && (
-                <Card className="border" style={{ borderColor: "#91C6BC" }}>
+                <Card className="border" style={{ borderColor: "#A2CB8B" }}>
                   <CardBody>
                     <h2 className="h6 mb-2">Listed by</h2>
                     <p className="mb-1 fw-medium">{detail.agent.name}</p>
@@ -228,6 +250,15 @@ const PublicPropertyDetail = () => {
               )}
             </Col>
           </Row>
+        )}
+        {id && (
+          <ContactAgentModal
+            propertyId={id}
+            propertyTitle={detail?.title}
+            agentDisplayName={detail?.agent?.name}
+            isOpen={contactOpen}
+            toggle={() => setContactOpen((o) => !o)}
+          />
         )}
       </Container>
     </div>

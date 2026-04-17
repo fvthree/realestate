@@ -155,7 +155,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
 
   return (
     <div>
-      <h5 className="mb-3" style={{ color: '#4B9DA9' }}>Property Photos</h5>
+      <h5 className="mb-3" style={{ color: '#5B7E3C' }}>Property Photos</h5>
       <p className="text-muted">Upload high-quality photos of your property. First photo will be the cover image.</p>
 
       <Row>
@@ -171,13 +171,13 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
               maxSize={5242880} // 5MB
             >
               {({ getRootProps, getInputProps }) => (
-                <div className="dropzone dz-clickable" style={{ border: '2px dashed #91C6BC' }}>
+                <div className="dropzone dz-clickable" style={{ border: '2px dashed #A2CB8B' }}>
                   <div className="dz-message needsclick" {...getRootProps()}>
                     <input {...getInputProps()} />
                     <div className="mb-3">
-                      <i className="display-4 text-muted ri-upload-cloud-2-fill" style={{ color: '#4B9DA9' }} />
+                      <i className="display-4 text-muted ri-upload-cloud-2-fill" style={{ color: '#5B7E3C' }} />
                     </div>
-                    <h4 style={{ color: '#4B9DA9' }}>Drop images here or click to upload</h4>
+                    <h4 style={{ color: '#5B7E3C' }}>Drop images here or click to upload</h4>
                     <p className="text-muted">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF, WEBP</p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
                         {isCoverMedia(file) && (
                           <div
                             className="position-absolute top-0 start-0 m-2 badge"
-                            style={{ backgroundColor: '#E37434' }}
+                            style={{ backgroundColor: '#C44545' }}
                           >
                             <i className="ri-image-line me-1"></i>Cover
                           </div>
@@ -240,7 +240,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
                             size="sm"
                             className="flex-grow-1"
                             onClick={() => handleSetCover(index)}
-                            style={{ backgroundColor: '#91C6BC', borderColor: '#91C6BC' }}
+                            style={{ backgroundColor: '#A2CB8B', borderColor: '#A2CB8B' }}
                           >
                             <i className="ri-star-line me-1"></i>Set as Cover
                           </Button>

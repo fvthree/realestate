@@ -115,23 +115,17 @@ class APIClient {
    * Fetches data from the given URL
    */
   get = (url: string, params?: any): Promise<AxiosResponse> => {
-    let response: Promise<AxiosResponse>;
+    const cleanedParams =
+      params && typeof params === "object"
+        ? Object.entries(params).reduce((acc: Record<string, any>, [key, value]) => {
+            if (value !== null && value !== undefined) {
+              acc[key] = value;
+            }
+            return acc;
+          }, {})
+        : undefined;
 
-    let paramKeys: string[] = [];
-
-    if (params) {
-      Object.keys(params).map(key => {
-        paramKeys.push(key + '=' + params[key]);
-        return paramKeys;
-      });
-
-      const queryString = paramKeys && paramKeys.length ? paramKeys.join('&') : "";
-      response = axios.get(`${url}?${queryString}`, params);
-    } else {
-      response = axios.get(`${url}`, params);
-    }
-
-    return response;
+    return axios.get(url, { params: cleanedParams });
   };
 
   /**
