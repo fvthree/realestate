@@ -80,6 +80,11 @@ credentials*.json
 Thumbs.db
 
 # =========================
+# Local media uploads (backend disk storage)
+# =========================
+uploads/
+
+# =========================
 # Project-specific generated/docs
 # =========================
 spring-modulith-docs/
