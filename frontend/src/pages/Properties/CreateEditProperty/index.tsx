@@ -210,17 +210,33 @@ const CreateEditProperty = () => {
         if (result.payload && result.payload.id && uploadedMedia.length > 0) {
           const newFiles = uploadedMedia.filter((media: any) => media instanceof File);
           if (newFiles.length > 0) {
-            newFiles.forEach((file: any) => {
-              dispatch(uploadPropertyMedia({
+            const uploadedServerMedia: any[] = [];
+
+            for (let idx = 0; idx < newFiles.length; idx += 1) {
+              const file = newFiles[idx];
+              const isCover = idx === 0;
+              const uploaded = await dispatch(uploadPropertyMedia({
                 id: result.payload.id,
-                media: {
-                  mediaType: "IMAGE",
-                  storageKey: `properties/${result.payload.id}/${file.name}`,
-                  publicUrl: URL.createObjectURL(file),
-                },
-              }));
+                file,
+                isCover,
+              })).unwrap();
+
+              uploadedServerMedia.push({
+                ...uploaded,
+                isCover: uploaded.is_cover,
+                is_cover: uploaded.is_cover,
+                url: uploaded.public_url,
+                preview: uploaded.public_url,
+                name: file.name,
+                size: file.size,
+              });
+            }
+
+            setUploadedMedia((prev) => {
+              const persistedMedia = prev.filter((media: any) => !(media instanceof File));
+              return [...persistedMedia, ...uploadedServerMedia];
             });
-            console.log("📤 Uploading media metadata for property:", result.payload.id);
+            console.log("📤 Uploaded files for property:", result.payload.id);
           }
         }
       } catch (error) {

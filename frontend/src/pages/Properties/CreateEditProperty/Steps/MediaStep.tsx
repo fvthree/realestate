@@ -6,7 +6,7 @@ import { uploadPropertyMedia, deletePropertyMedia, reorderPropertyMedia } from "
 
 interface MediaStepProps {
   uploadedMedia: any[];
-  setUploadedMedia: (media: any[]) => void;
+  setUploadedMedia: React.Dispatch<React.SetStateAction<any[]>>;
   propertyId?: string;
 }
 
@@ -23,7 +23,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
   }
 
-  function handleAcceptedFiles(files: any) {
+  async function handleAcceptedFiles(files: any) {
     const newFiles = files.map((file: any, idx: number) =>
       Object.assign(file, {
         preview: URL.createObjectURL(file),
@@ -36,19 +36,43 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
 
     setUploadedMedia([...uploadedMedia, ...newFiles]);
 
-    // If property exists, persist metadata immediately.
-    // Actual binary upload target (S3/MinIO/presigned URL) can be added later.
+    // If property exists, upload the real files immediately via multipart/form-data.
     if (propertyId) {
-      newFiles.forEach((file: any) => {
-        dispatch(uploadPropertyMedia({
-          id: propertyId,
-          media: {
-            mediaType: "IMAGE",
-            storageKey: `properties/${propertyId}/${file.name}`,
-            publicUrl: file.preview,
-          },
-        }));
-      });
+      const existingCount = uploadedMedia.length;
+      const uploadedServerMedia: any[] = [];
+
+      for (let idx = 0; idx < newFiles.length; idx += 1) {
+        const file = newFiles[idx];
+        try {
+          const uploaded = await dispatch(uploadPropertyMedia({
+            id: propertyId,
+            file,
+            isCover: existingCount === 0 && idx === 0,
+          })).unwrap();
+
+          uploadedServerMedia.push({
+            ...uploaded,
+            id: uploaded.id,
+            isCover: uploaded.is_cover,
+            is_cover: uploaded.is_cover,
+            url: uploaded.public_url,
+            preview: uploaded.public_url,
+            name: file.name,
+            size: file.size,
+            formattedSize: formatBytes(file.size),
+          });
+        } catch (error) {
+          console.error("Failed to upload media file:", error);
+        }
+      }
+
+      if (uploadedServerMedia.length > 0) {
+        setUploadedMedia((prev) => {
+          const prevSafe = prev.filter(Boolean);
+          const withoutTemp = prevSafe.filter((item: any) => !newFiles.some((temp: any) => temp.id === item.id));
+          return [...withoutTemp, ...uploadedServerMedia];
+        });
+      }
     }
   }
 

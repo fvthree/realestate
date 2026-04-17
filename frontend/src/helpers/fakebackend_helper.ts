@@ -417,6 +417,14 @@ export const publishProperty = (id: string) => api.create(`${url.PUBLISH_PROPERT
 export const markSoldProperty = (id: string) => api.create(`${url.MARK_SOLD_PROPERTY}/${id}/mark-sold`, {});
 export const uploadPropertyMedia = (id: string, media: { mediaType?: string; storageKey: string; publicUrl: string }) =>
   api.create(`${url.UPLOAD_PROPERTY_MEDIA}/${id}/media`, media);
+export const uploadPropertyMediaFile = (propertyId: string, file: File, isCover?: boolean) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (typeof isCover === "boolean") {
+    formData.append("is_cover", String(isCover));
+  }
+  return api.upload(`${url.UPLOAD_PROPERTY_MEDIA}/${propertyId}/media/upload`, formData);
+};
 export const deletePropertyMedia = (propertyId: string, mediaId: string) => api.delete(`${url.DELETE_PROPERTY_MEDIA}/${propertyId}/media/${mediaId}`);
 export const reorderPropertyMedia = (propertyId: string, mediaId: string, payload: any) =>
   api.update(`${url.REORDER_PROPERTY_MEDIA}/${propertyId}/media/${mediaId}`, payload);

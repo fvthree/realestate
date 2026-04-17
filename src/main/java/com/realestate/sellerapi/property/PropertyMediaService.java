@@ -2,8 +2,14 @@ package com.realestate.sellerapi.property;
 
 import com.realestate.sellerapi.property.domain.PropertyMedia;
 import com.realestate.sellerapi.property.domain.Property;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 @Service
@@ -11,11 +17,51 @@ public class PropertyMediaService {
 
     private final PropertyRepository propertyRepository;
     private final PropertyMediaRepository propertyMediaRepository;
+    private final Path uploadRootPath;
 
     public PropertyMediaService(PropertyRepository propertyRepository,
-                               PropertyMediaRepository propertyMediaRepository) {
+                               PropertyMediaRepository propertyMediaRepository,
+                               @Value("${app.media.upload-dir:uploads/properties}") String uploadDir) {
         this.propertyRepository = propertyRepository;
         this.propertyMediaRepository = propertyMediaRepository;
+        this.uploadRootPath = Path.of(uploadDir).toAbsolutePath().normalize();
+    }
+
+    public PropertyMedia uploadMedia(UUID agentId, UUID propertyId, MultipartFile file, Boolean isCover) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is required");
+        }
+        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+            throw new IllegalArgumentException("Only image files are allowed");
+        }
+
+        Property property = propertyRepository.findById(propertyId)
+                .orElseThrow(PropertyNotFoundException::new);
+
+        if (!property.getAgentId().equals(agentId)) {
+            throw new PropertyNotOwnedException();
+        }
+
+        Files.createDirectories(uploadRootPath);
+
+        String extension = resolveExtension(file.getOriginalFilename());
+        String storedFileName = UUID.randomUUID() + extension;
+        Path destination = uploadRootPath.resolve(storedFileName).normalize();
+
+        if (!destination.startsWith(uploadRootPath)) {
+            throw new IllegalArgumentException("Invalid file path");
+        }
+
+        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+        String publicUrl = "/api/uploads/properties/" + storedFileName;
+        PropertyMedia media = addMedia(agentId, propertyId, storedFileName, publicUrl);
+
+        if (Boolean.TRUE.equals(isCover)) {
+            media = updateMedia(agentId, propertyId, media.getId(), media.getSortOrder(), true);
+        }
+
+        return media;
     }
 
     public PropertyMedia addMedia(UUID agentId, UUID propertyId, String storageKey, String publicUrl) {
@@ -98,7 +144,33 @@ public class PropertyMediaService {
             throw new PropertyMediaNotFoundException();
         }
 
+        removeStoredFile(media.getStorageKey());
         propertyMediaRepository.delete(media);
+    }
+
+    private void removeStoredFile(String storageKey) {
+        if (storageKey == null || storageKey.isBlank()) {
+            return;
+        }
+        try {
+            Path targetPath = uploadRootPath.resolve(storageKey).normalize();
+            if (targetPath.startsWith(uploadRootPath)) {
+                Files.deleteIfExists(targetPath);
+            }
+        } catch (IOException ignored) {
+            // Best-effort cleanup only; DB delete should still proceed.
+        }
+    }
+
+    private String resolveExtension(String originalFilename) {
+        if (originalFilename == null || originalFilename.isBlank()) {
+            return "";
+        }
+        int lastDot = originalFilename.lastIndexOf('.');
+        if (lastDot < 0 || lastDot == originalFilename.length() - 1) {
+            return "";
+        }
+        return originalFilename.substring(lastDot).toLowerCase();
     }
 }
 

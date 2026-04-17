@@ -135,6 +135,14 @@ class APIClient {
     return axios.post(url, data);
   };
 
+  upload = (url: string, data: FormData): Promise<AxiosResponse> => {
+    return axios.post(url, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  };
+
   /**
    * Updates data
    */

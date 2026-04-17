@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -54,6 +57,42 @@ public class PropertyMediaController {
                     media.getIsCover()
             );
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (PropertyNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(404, "Property not found"));
+        } catch (PropertyNotOwnedException ex) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse(403, "You do not own this property"));
+        }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> uploadMedia(
+            @PathVariable UUID propertyId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "is_cover", required = false) Boolean isCover) {
+        AgentPrincipal principal = (AgentPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ErrorResponse(401, "Unauthorized"));
+        }
+
+        try {
+            var media = propertyMediaService.uploadMedia(principal.agentId(), propertyId, file, isCover);
+            MediaResponse response = new MediaResponse(
+                    media.getId(),
+                    propertyId,
+                    media.getPublicUrl(),
+                    media.getSortOrder(),
+                    media.getIsCover()
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(400, ex.getMessage()));
+        } catch (IOException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(500, "Failed to store uploaded file"));
         } catch (PropertyNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(404, "Property not found"));

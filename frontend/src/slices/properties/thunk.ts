@@ -10,7 +10,7 @@ import {
   deleteProperty as deletePropertyApi,
   publishProperty as publishPropertyApi,
   markSoldProperty as markSoldPropertyApi,
-  uploadPropertyMedia as uploadPropertyMediaApi,
+  uploadPropertyMediaFile as uploadPropertyMediaFileApi,
   deletePropertyMedia as deletePropertyMediaApi,
   reorderPropertyMedia as reorderPropertyMediaApi
 } from "../../helpers/fakebackend_helper";
@@ -136,9 +136,9 @@ export const markSoldProperty = createAsyncThunk(
 
 export const uploadPropertyMedia = createAsyncThunk(
   "properties/uploadPropertyMedia",
-  async (data: { id: string, media: { mediaType?: string, storageKey: string, publicUrl: string } }, { rejectWithValue }) => {
+  async (data: { id: string, file: File, isCover?: boolean }, { rejectWithValue }) => {
     try {
-      const response = await uploadPropertyMediaApi(data.id, data.media);
+      const response = await uploadPropertyMediaFileApi(data.id, data.file, data.isCover);
       toast.success("Media uploaded successfully", { autoClose: 3000 });
       return unwrapResponse(response);
     } catch (error: any) {
