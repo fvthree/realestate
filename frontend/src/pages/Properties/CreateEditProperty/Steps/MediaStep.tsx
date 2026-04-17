@@ -13,6 +13,7 @@ interface MediaStepProps {
 const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, propertyId }) => {
   const dispatch = useDispatch<any>();
   const isCoverMedia = (media: any) => Boolean(media?.isCover ?? media?.is_cover);
+  const [dropError, setDropError] = React.useState<string | null>(null);
 
   function formatBytes(bytes: number, decimals = 2) {
     if (bytes === 0) return "0 Bytes";
@@ -24,6 +25,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
   }
 
   async function handleAcceptedFiles(files: any) {
+    setDropError(null);
     const newFiles = files.map((file: any, idx: number) =>
       Object.assign(file, {
         preview: URL.createObjectURL(file),
@@ -63,6 +65,7 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
           });
         } catch (error) {
           console.error("Failed to upload media file:", error);
+          setDropError("One or more images failed to upload. You can still save and re-upload from edit page.");
         }
       }
 
@@ -189,10 +192,15 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
               onDrop={(acceptedFiles: any) => {
                 handleAcceptedFiles(acceptedFiles);
               }}
-              accept={{
-                'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+              onDropRejected={(fileRejections) => {
+                if (!fileRejections.length) return;
+                const firstError = fileRejections[0].errors?.[0]?.message || "Some files were rejected.";
+                setDropError(firstError);
               }}
-              maxSize={5242880} // 5MB
+              accept={{
+                'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.heic', '.heif', '.jfif']
+              }}
+              maxSize={10485760} // 10MB
             >
               {({ getRootProps, getInputProps }) => (
                 <div className="dropzone dz-clickable" style={{ border: '2px dashed #A2CB8B' }}>
@@ -303,6 +311,15 @@ const MediaStep: React.FC<MediaStepProps> = ({ uploadedMedia, setUploadedMedia, 
             <div className="alert alert-warning" role="alert">
               <i className="ri-error-warning-line me-2"></i>
               <strong>No photos uploaded yet.</strong> Please upload at least one photo to continue.
+            </div>
+          </Col>
+        )}
+
+        {dropError && (
+          <Col lg={12}>
+            <div className="alert alert-danger" role="alert">
+              <i className="ri-close-circle-line me-2"></i>
+              {dropError}
             </div>
           </Col>
         )}

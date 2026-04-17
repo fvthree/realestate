@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -18,20 +19,26 @@ public class PropertyMediaService {
     private final PropertyRepository propertyRepository;
     private final PropertyMediaRepository propertyMediaRepository;
     private final Path uploadRootPath;
+    private final long maxFileSizeBytes;
 
     public PropertyMediaService(PropertyRepository propertyRepository,
                                PropertyMediaRepository propertyMediaRepository,
-                               @Value("${app.media.upload-dir:uploads/properties}") String uploadDir) {
+                               @Value("${app.media.upload-dir:uploads/properties}") String uploadDir,
+                               @Value("${app.media.max-file-size-bytes:10485760}") long maxFileSizeBytes) {
         this.propertyRepository = propertyRepository;
         this.propertyMediaRepository = propertyMediaRepository;
         this.uploadRootPath = Path.of(uploadDir).toAbsolutePath().normalize();
+        this.maxFileSizeBytes = maxFileSizeBytes;
     }
 
     public PropertyMedia uploadMedia(UUID agentId, UUID propertyId, MultipartFile file, Boolean isCover) throws IOException {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File is required");
         }
-        if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
+        if (file.getSize() > maxFileSizeBytes) {
+            throw new IllegalArgumentException("File exceeds maximum allowed size");
+        }
+        if (!isSupportedImageFile(file)) {
             throw new IllegalArgumentException("Only image files are allowed");
         }
 
@@ -171,6 +178,19 @@ public class PropertyMediaService {
             return "";
         }
         return originalFilename.substring(lastDot).toLowerCase();
+    }
+
+    private boolean isSupportedImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType != null && contentType.startsWith("image/")) {
+            return true;
+        }
+
+        String extension = resolveExtension(file.getOriginalFilename());
+        Set<String> imageExtensions = Set.of(
+                ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".heic", ".heif", ".jfif"
+        );
+        return imageExtensions.contains(extension);
     }
 }
 

@@ -199,15 +199,15 @@ const CreateEditProperty = () => {
       console.log("📤 Submitting property data to backend:", JSON.stringify(propertyData, null, 2));
 
       try {
-        let result;
+        let savedProperty: any;
         if (isEditMode && id) {
-          result = await dispatch(updateProperty({ id, property: propertyData }));
+          savedProperty = await dispatch(updateProperty({ id, property: propertyData })).unwrap();
         } else {
-          result = await dispatch(createProperty(propertyData));
+          savedProperty = await dispatch(createProperty(propertyData)).unwrap();
         }
 
         // After successful creation, upload media if there are any new files
-        if (result.payload && result.payload.id && uploadedMedia.length > 0) {
+        if (savedProperty?.id && uploadedMedia.length > 0) {
           const newFiles = uploadedMedia.filter((media: any) => media instanceof File);
           if (newFiles.length > 0) {
             const uploadedServerMedia: any[] = [];
@@ -215,28 +215,32 @@ const CreateEditProperty = () => {
             for (let idx = 0; idx < newFiles.length; idx += 1) {
               const file = newFiles[idx];
               const isCover = idx === 0;
-              const uploaded = await dispatch(uploadPropertyMedia({
-                id: result.payload.id,
-                file,
-                isCover,
-              })).unwrap();
+              try {
+                const uploaded = await dispatch(uploadPropertyMedia({
+                  id: savedProperty.id,
+                  file,
+                  isCover,
+                })).unwrap();
 
-              uploadedServerMedia.push({
-                ...uploaded,
-                isCover: uploaded.is_cover,
-                is_cover: uploaded.is_cover,
-                url: uploaded.public_url,
-                preview: uploaded.public_url,
-                name: file.name,
-                size: file.size,
-              });
+                uploadedServerMedia.push({
+                  ...uploaded,
+                  isCover: uploaded.is_cover,
+                  is_cover: uploaded.is_cover,
+                  url: uploaded.public_url,
+                  preview: uploaded.public_url,
+                  name: file.name,
+                  size: file.size,
+                });
+              } catch (uploadError) {
+                console.error("❌ Upload failed for file:", file?.name, uploadError);
+              }
             }
 
             setUploadedMedia((prev) => {
               const persistedMedia = prev.filter((media: any) => !(media instanceof File));
               return [...persistedMedia, ...uploadedServerMedia];
             });
-            console.log("📤 Uploaded files for property:", result.payload.id);
+            console.log("📤 Uploaded files for property:", savedProperty.id);
           }
         }
       } catch (error) {

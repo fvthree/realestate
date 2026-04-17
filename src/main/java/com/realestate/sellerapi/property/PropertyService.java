@@ -1,6 +1,5 @@
 package com.realestate.sellerapi.property;
 
-import com.realestate.sellerapi.config.DataSeeder;
 import com.realestate.sellerapi.property.api.CreatePropertyRequest;
 import com.realestate.sellerapi.property.api.MarkSoldResponse;
 import com.realestate.sellerapi.property.api.PaginatedPropertyResponse;
@@ -11,6 +10,7 @@ import com.realestate.sellerapi.property.api.UpdatePropertyRequest;
 import com.realestate.sellerapi.property.api.events.PropertyPublishedEvent;
 import com.realestate.sellerapi.property.api.events.PropertySoldEvent;
 import com.realestate.sellerapi.property.domain.Property;
+import com.realestate.sellerapi.property.domain.PropertyMedia;
 import com.realestate.sellerapi.property.domain.PropertyStatus;
 import com.realestate.sellerapi.property.domain.PropertyType;
 import org.slf4j.Logger;
@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,11 +31,14 @@ public class PropertyService {
 
 
     private final PropertyRepository propertyRepository;
+    private final PropertyMediaRepository propertyMediaRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public PropertyService(PropertyRepository propertyRepository,
+                           PropertyMediaRepository propertyMediaRepository,
                            ApplicationEventPublisher eventPublisher) {
         this.propertyRepository = propertyRepository;
+        this.propertyMediaRepository = propertyMediaRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -223,10 +227,28 @@ public class PropertyService {
                         property.getCityMunicipality(),
                         property.getProvince()
                 ),
-                null, // cover_image_url handled separately in media
+                resolveCoverImageUrl(property.getId()),
                 property.getSoldAt(),
                 property.getCreatedAt()
         );
+    }
+
+    /**
+     * Same rules as public listing cards: cover flag, else first image with a URL.
+     */
+    private String resolveCoverImageUrl(UUID propertyId) {
+        List<PropertyMedia> media = propertyMediaRepository.findByPropertyIdOrderBySortOrderAsc(propertyId);
+        return media.stream()
+                .filter(m -> Boolean.TRUE.equals(m.getIsCover()) && m.getPublicUrl() != null && !m.getPublicUrl().isBlank())
+                .map(PropertyMedia::getPublicUrl)
+                .findFirst()
+                .or(() -> media.stream()
+                        .map(PropertyMedia::getPublicUrl)
+                        .filter(Objects::nonNull)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .findFirst())
+                .orElse(null);
     }
 }
 

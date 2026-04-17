@@ -14,6 +14,12 @@ import {
 
 export const initialState : any = {
   properties: [],
+  /** From GET /me/properties when backend returns { data, meta } */
+  propertiesMeta: null as {
+    page: number;
+    per_page: number;
+    total: number;
+  } | null,
   property: null,
   error: null,
   loading: false,
@@ -43,7 +49,9 @@ const propertiesSlice = createSlice({
     });
     builder.addCase(getProperties.fulfilled, (state, action) => {
       state.loading = false;
-      state.properties = Array.isArray(action.payload) ? action.payload : [];
+      const payload = action.payload as { items?: any[]; meta?: typeof state.propertiesMeta };
+      state.properties = Array.isArray(payload?.items) ? payload.items : [];
+      state.propertiesMeta = payload?.meta ?? null;
       state.error = null;
     });
     builder.addCase(getProperties.rejected, (state, action) => {

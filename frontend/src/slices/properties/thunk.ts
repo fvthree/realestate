@@ -29,15 +29,40 @@ const unwrapResponse = (response: any) => {
   return response;
 };
 
-const extractProperties = (response: any): any[] => {
+/** Normalizes GET /me/properties paginated JSON: { data, meta } */
+const parsePropertiesListResponse = (
+  response: any
+): {
+  items: any[];
+  meta: { page: number; per_page: number; total: number } | null;
+} => {
   const payload = unwrapResponse(response);
 
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.data)) return payload.data;
-  if (Array.isArray(payload?.properties)) return payload.properties;
-  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload)) {
+    return { items: payload, meta: null };
+  }
 
-  return [];
+  if (payload && typeof payload === "object") {
+    let items: any[] = [];
+    if (Array.isArray(payload.data)) items = payload.data;
+    else if (Array.isArray(payload.items)) items = payload.items;
+    else if (Array.isArray(payload.properties)) items = payload.properties;
+
+    const rawMeta = payload.meta;
+    if (rawMeta && typeof rawMeta === "object") {
+      return {
+        items,
+        meta: {
+          page: Number(rawMeta.page) || 1,
+          per_page: Number(rawMeta.per_page ?? rawMeta.perPage) || 10,
+          total: Number(rawMeta.total) || 0,
+        },
+      };
+    }
+    return { items, meta: null };
+  }
+
+  return { items: [], meta: null };
 };
 
 export const getProperties = createAsyncThunk(
@@ -45,7 +70,7 @@ export const getProperties = createAsyncThunk(
   async (params: any = undefined, { rejectWithValue }) => {
     try {
       const response = await getPropertiesApi(params);
-      return extractProperties(response);
+      return parsePropertiesListResponse(response);
     } catch (error: any) {
       return rejectWithValue(normalizeError(error));
     }

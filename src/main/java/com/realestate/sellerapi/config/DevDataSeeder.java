@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Idempotent seed for {@code local} and {@code default} profiles only.
- * For a full wipe + fresh listings on each startup, run with profile {@code dev} ({@link DevDataSeeder}).
+ * <strong>Profile {@code dev} only.</strong> Wipes all properties, property media, and inquiries on startup,
+ * then seeds a clean catalog: default agent, one draft, 22 published listings with cover images, and 12 inquiry threads.
  */
 @Configuration
-@Profile({"local", "default"})
-public class DataSeeder {
+@Profile("dev")
+public class DevDataSeeder {
 
-    private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
+    private static final Logger log = LoggerFactory.getLogger(DevDataSeeder.class);
 
     private static final String DEFAULT_AGENT_EMAIL = "agent@example.com";
 
@@ -49,17 +49,22 @@ public class DataSeeder {
                                    PropertyMediaRepository propertyMediaRepository,
                                    PasswordEncoder passwordEncoder) {
         return args -> {
+            log.warn("DEV: deleting all inquiries, property media, and properties...");
+            inquiryRepository.deleteAll();
+            propertyMediaRepository.deleteAll();
+            propertyRepository.deleteAll();
+
             Agent agent = agentRepository.findByEmail(DEFAULT_AGENT_EMAIL)
                     .orElseGet(() -> createDefaultAgent(agentRepository, passwordEncoder));
 
-            log.info("📌 Listing seed check for agent {} ({})", agent.getName(), agent.getEmail());
+            log.info("📌 Dev seed for agent {} ({})", agent.getName(), agent.getEmail());
 
             ensureDraftSample(agent.getId(), propertyRepository);
             seedPublishedShowcase(agent.getId(), propertyRepository, propertyMediaRepository);
             seedInquiryConversations(agent.getId(), propertyRepository, inquiryRepository);
 
             log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            log.info("🎉 Seed pass complete. Login: {} / password123", DEFAULT_AGENT_EMAIL);
+            log.info("🎉 Dev seed complete (fresh wipe + 22 published + draft + inquiries). Login: {} / password123", DEFAULT_AGENT_EMAIL);
             log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         };
     }
@@ -87,9 +92,6 @@ public class DataSeeder {
 
     private void ensureDraftSample(UUID agentId, PropertyRepository propertyRepository) {
         String title = "2BR Condo in Imus City";
-        if (propertyRepository.existsByAgentIdAndTitle(agentId, title)) {
-            return;
-        }
         Property draft = Property.builder()
                 .agentId(agentId)
                 .title(title)
@@ -236,14 +238,111 @@ public class DataSeeder {
                         "Governor's Hills executive village",
                         new BigDecimal("14.3855"), new BigDecimal("120.8871"),
                         "https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Studio unit Lancaster New City",
+                        "Compact studio with parking slot; fiber-ready; near transport hubs.",
+                        new BigDecimal("1980000.00"), PropertyType.CONDO, 1, 1,
+                        new BigDecimal("24.0"), null,
+                        "CALABARZON", "Cavite", "Imus", "Alapan I-B", "4103",
+                        "Lancaster Boulevard access",
+                        new BigDecimal("14.4055"), new BigDecimal("120.9488"),
+                        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Single-attached Carmona ridge",
+                        "3BR single-attached, carport, quiet village road.",
+                        new BigDecimal("5200000.00"), PropertyType.HOUSE, 3, 2,
+                        new BigDecimal("88.0"), new BigDecimal("100.0"),
+                        "CALABARZON", "Cavite", "Carmona", "Bancal", "4116",
+                        "Vista Verde Carmona",
+                        new BigDecimal("14.3132"), new BigDecimal("121.0577"),
+                        "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Residential lot Naic corner",
+                        "200sqm titled lot, near municipal hall, utilities ready.",
+                        new BigDecimal("2800000.00"), PropertyType.LOT, null, null,
+                        null, new BigDecimal("200.0"),
+                        "CALABARZON", "Cavite", "Naic", "Muzon", "4110",
+                        "Brgy Muzon inner road",
+                        new BigDecimal("14.3189"), new BigDecimal("120.7689"),
+                        "https://images.unsplash.com/photo-1500382017468-25aa40f7b7eb?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Townhouse Trece Martires",
+                        "2BR inner unit, flood-free, walking distance to market.",
+                        new BigDecimal("3100000.00"), PropertyType.TOWNHOUSE, 2, 1,
+                        new BigDecimal("55.0"), new BigDecimal("40.0"),
+                        "CALABARZON", "Cavite", "Trece Martires", "San Agustin", "4109",
+                        "San Agustin Village",
+                        new BigDecimal("14.2833"), new BigDecimal("120.8667"),
+                        "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Alfonso cabin-style home",
+                        "2BR wood-accent home, cool climate, ridge-facing porch.",
+                        new BigDecimal("6200000.00"), PropertyType.HOUSE, 2, 2,
+                        new BigDecimal("95.0"), new BigDecimal("180.0"),
+                        "CALABARZON", "Cavite", "Alfonso", "Sikat", "4123",
+                        "Near Tagaytay-Nasugbu Highway",
+                        new BigDecimal("14.1448"), new BigDecimal("120.8569"),
+                        "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Kawit heritage-inspired duplex",
+                        "Duplex with shared wall; renovated kitchen; near Aguinaldo shrine.",
+                        new BigDecimal("4400000.00"), PropertyType.TOWNHOUSE, 3, 2,
+                        new BigDecimal("78.0"), new BigDecimal("90.0"),
+                        "CALABARZON", "Cavite", "Kawit", "Tabon I", "4104",
+                        "Tabon I main road",
+                        new BigDecimal("14.4426"), new BigDecimal("120.9017"),
+                        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Rosario 2BR walk-up",
+                        "Affordable 2BR walk-up apartment; ideal for rental income.",
+                        new BigDecimal("2250000.00"), PropertyType.CONDO, 2, 1,
+                        new BigDecimal("48.0"), null,
+                        "CALABARZON", "Cavite", "Rosario", "Tejeros Convention", "4106",
+                        "Tejeros downtown",
+                        new BigDecimal("14.4167"), new BigDecimal("120.8500"),
+                        "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Silang modern minimalist house",
+                        "3BR flat roof design, smart lighting, landscaped front.",
+                        new BigDecimal("7800000.00"), PropertyType.HOUSE, 3, 3,
+                        new BigDecimal("140.0"), new BigDecimal("160.0"),
+                        "CALABARZON", "Cavite", "Silang", "Lalaan I", "4118",
+                        "Ayala Westgrove area",
+                        new BigDecimal("14.2156"), new BigDecimal("120.9712"),
+                        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Tanza family bungalow",
+                        "Single-level 4BR bungalow, wide lot frontage, gated.",
+                        new BigDecimal("5100000.00"), PropertyType.HOUSE, 4, 2,
+                        new BigDecimal("120.0"), new BigDecimal("200.0"),
+                        "CALABARZON", "Cavite", "Tanza", "Bunga", "4108",
+                        "Bunga coastal road",
+                        new BigDecimal("14.3933"), new BigDecimal("120.8533"),
+                        "https://images.unsplash.com/photo-1605276374104-dee2a0ed3b36?w=800&q=80"
+                ),
+                new PublishedSeed(
+                        "Amadeo coffee farm residential",
+                        "1,500sqm sloping lot with mature trees; weekend retreat potential.",
+                        new BigDecimal("4500000.00"), PropertyType.LOT, null, null,
+                        null, new BigDecimal("1500.0"),
+                        "CALABARZON", "Cavite", "Amadeo", "Maymangga", "4119",
+                        "Barangay road interior",
+                        new BigDecimal("14.2167"), new BigDecimal("120.9167"),
+                        "https://images.unsplash.com/photo-1448630360428-65456885e650?w=800&q=80"
                 )
         };
 
         int added = 0;
         for (PublishedSeed seed : seeds) {
-            if (propertyRepository.existsByAgentIdAndTitle(agentId, seed.title())) {
-                continue;
-            }
             Property p = Property.builder()
                     .agentId(agentId)
                     .title(seed.title())
@@ -270,11 +369,7 @@ public class DataSeeder {
             log.info("✅ Seeded PUBLISHED: {}", seed.title());
             added++;
         }
-        if (added == 0) {
-            log.info("Published showcase already complete ({} listings checked).", seeds.length);
-        } else {
-            log.info("Added {} new published listings (showcase total {}).", added, seeds.length);
-        }
+        log.info("Seeded {} published listings (dev catalog total {}).", added, seeds.length);
     }
 
     private void seedCoverMedia(PropertyMediaRepository propertyMediaRepository, Property property, String publicUrl) {

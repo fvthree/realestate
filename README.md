@@ -96,6 +96,24 @@ Backend (API only, skips frontend build per [`copilot/mvp.md`](copilot/mvp.md)):
 mvn spring-boot:run -Dskip.frontend=true
 ```
 
+### Backend in dev mode (`dev` profile)
+
+Use the **`dev`** Spring profile when you want a **clean database seed on every startup**: all properties, property media, and inquiries are deleted, then the app recreates the default agent, **22 published** listings plus **one draft**, cover images, and **12 sample inquiry** threads. Settings in `src/main/resources/application-dev.properties` apply on top of `application.properties`.
+
+```bash
+mvn spring-boot:run -Dskip.frontend=true -Dspring-boot.run.profiles=dev
+```
+
+Equivalent:
+
+```bash
+mvn spring-boot:run -Dskip.frontend=true -Dspring-boot.run.arguments=--spring.profiles.active=dev
+```
+
+**Default seeded agent (after seed runs):** `agent@example.com` / `password123`.
+
+For **incremental** seeding without wiping existing data, run **without** the `dev` profile (for example the command in the previous section uses the default profile, or you can set `local` if you add that profile). The `DataSeeder` for `local` / `default` is idempotent and only adds missing rows.
+
 Frontend (from repository root):
 
 ```bash
