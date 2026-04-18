@@ -90,3 +90,8 @@ uploads/
 spring-modulith-docs/
 copilot/
 frontend/copilot/
+
+# =========================
+# Docker local orchestration
+# =========================
+docker-compose.yml
