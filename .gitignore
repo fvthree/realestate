@@ -60,6 +60,10 @@ application-*.yaml
 *credentials*
 *token*
 
+# Exception: mock JWT module for frontend fake backend (path contains "token" and matches rule above)
+!frontend/src/helpers/jwt-token-access/
+!frontend/src/helpers/jwt-token-access/**
+
 # Common secret file patterns
 service-account*.json
 firebase-admin*.json
